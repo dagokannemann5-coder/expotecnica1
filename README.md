@@ -4,9 +4,8 @@ Proyecto Final Integrador - Programación II + Bases de Datos II
 ExpoTécnica - Noviembre
 
 ## Integrantes
-- Nombre y apellido 1
-- Nombre y apellido 2
-- Nombre y apellido 3
+- Kannemann Dago
+- Romero Matías
 
 ## Descripción
 Aplicación web de preguntas y respuestas sobre cultura general argentina.

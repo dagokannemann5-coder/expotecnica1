@@ -1,6 +1,6 @@
 # Quiz de Cultura General Argentina
 
-Proyecto Final Integrador - Programación II + Bases de Datos II
+Proyecto Final Integrador - Programación II + Bases de Datos II + Seguridad Informática + Redes II
 ExpoTécnica - Noviembre
 
 ## Integrantes

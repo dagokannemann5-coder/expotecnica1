@@ -8,6 +8,8 @@ preguntas = [
     ("¿En qué año se sancionó la Constitución Nacional Argentina?", ["1816", "1853", "1880", "1916"], 1, "historia", "media"),
     ("¿En qué ciudad se encuentra la Casa Histórica donde se declaró la Independencia?", ["Salta", "Córdoba", "San Miguel de Tucumán", "Buenos Aires"], 2, "historia", "facil"),
     ("¿En qué año se formó la Primera Junta de gobierno?", ["1806", "1810", "1816", "1820"], 1, "historia", "facil"),
+    ("¿Quién creó la bandera argentina?", ["José de San Martín", "Manuel Belgrano", "Domingo F. Sarmiento", "Juan Manuel de Rosas"], 1, "historia", "facil"),
+
 
     # Geografía
     ("¿Qué río forma parte del límite entre Argentina y Uruguay?", ["Río Paraná", "Río Uruguay", "Río Colorado", "Río Negro"], 1, "geografia", "facil"),

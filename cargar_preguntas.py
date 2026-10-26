@@ -2,10 +2,8 @@ from modelos.pregunta import Pregunta
 from repositorio.repositorio_quiz import RepositorioQuiz
 
 META_PREGUNTAS = 60
+META_POR_CATEGORIA = 12
 
-# Las primeras 30 son las preguntas nuevas enviadas por el equipo.
-# Las preguntas de respaldo solo se usarán si hacen falta para llegar a 60
-# (por ejemplo, si alguna de las 30 ya estaba cargada en la base).
 preguntas = [
     # Deportes
     ("¿En qué año ganó Argentina su primer Mundial de fútbol?", ["1978", "1986", "1990", "1930"], 0, "deportes", "facil"),
@@ -47,7 +45,7 @@ preguntas = [
     ("¿Qué compositor argentino creó la obra sinfónica 'Estancia'?", ["Alberto Ginastera", "Astor Piazzolla", "Carlos Guastavino", "Juan Carlos Paz"], 0, "musica", "dificil"),
     ("¿Qué músico argentino compuso la canción 'Muchacha (Ojos de papel)'?", ["Charly García", "León Gieco", "Luis Alberto Spinetta", "Litto Nebbia"], 2, "musica", "dificil"),
 
-    # Preguntas de respaldo. Se insertan solo si hacen falta para alcanzar 60.
+    # Preguntas de respaldo, por si alguna de las anteriores ya existe
     ("¿Qué océano baña la costa argentina?", ["Océano Atlántico", "Océano Pacífico", "Océano Índico", "Océano Ártico"], 0, "geografia", "facil"),
     ("¿Qué provincia argentina tiene como capital a San Miguel de Tucumán?", ["Salta", "Santiago del Estero", "Tucumán", "Jujuy"], 2, "geografia", "facil"),
     ("¿En qué provincia se encuentra el Parque Nacional Talampaya?", ["La Rioja", "Neuquén", "Entre Ríos", "San Luis"], 0, "geografia", "media"),
@@ -65,43 +63,67 @@ existentes = repo.listar_preguntas()
 textos_existentes = {p.texto.strip().casefold() for p in existentes}
 categorias_validas = {str(c["_id"]) for c in repo.obtener_categorias()}
 
+conteo = {categoria: 0 for categoria in categorias_validas}
+for pregunta in existentes:
+    if pregunta.categoria_id in conteo:
+        conteo[pregunta.categoria_id] += 1
+
 if len(existentes) >= META_PREGUNTAS:
-    print(f"La base ya tiene {len(existentes)} preguntas; la meta es {META_PREGUNTAS}. No se agregaron preguntas.")
-    raise SystemExit(0)
+    print(f"La base ya tiene {len(existentes)} preguntas; el máximo es {META_PREGUNTAS}.")
+    print("Preguntas por categoría:")
+    for categoria in sorted(conteo):
+        print(f"- {categoria}: {conteo[categoria]} de {META_POR_CATEGORIA}")
+    if any(cantidad != META_POR_CATEGORIA for cantidad in conteo.values()):
+        print("Aviso: la distribución no es de 12 por categoría. No se borró ningún dato.")
+else:
+    agregadas = 0
+    omitidas = 0
 
-agregadas = 0
-omitidas = 0
+    for texto, opciones, respuesta, categoria, dificultad in preguntas:
+        if len(existentes) + agregadas >= META_PREGUNTAS:
+            break
 
-for texto, opciones, respuesta, categoria, dificultad in preguntas:
-    total_actual = len(existentes) + agregadas
-    if total_actual >= META_PREGUNTAS:
-        break
+        texto_normalizado = texto.strip().casefold()
 
-    texto_normalizado = texto.strip().casefold()
-    if texto_normalizado in textos_existentes:
-        omitidas += 1
-        print("Ya existía; se omite:", texto)
-        continue
+        if texto_normalizado in textos_existentes:
+            omitidas += 1
+            print("Ya existía; se omite:", texto)
+            continue
 
-    if categoria not in categorias_validas:
-        raise RuntimeError(f"La categoría '{categoria}' no existe en MongoDB. No se cargó esta pregunta.")
+        if categoria not in categorias_validas:
+            raise RuntimeError(f"La categoría '{categoria}' no existe en MongoDB.")
 
-    nueva = Pregunta(
-        texto=texto,
-        opciones=opciones,
-        respuesta_correcta=respuesta,
-        categoria_id=categoria,
-        dificultad=dificultad,
-    )
-    repo.crear_pregunta(nueva)
-    textos_existentes.add(texto_normalizado)
-    agregadas += 1
-    print("Agregada:", texto)
+        if conteo[categoria] >= META_POR_CATEGORIA:
+            continue
 
+        nueva = Pregunta(
+            texto=texto,
+            opciones=opciones,
+            respuesta_correcta=respuesta,
+            categoria_id=categoria,
+            dificultad=dificultad,
+        )
+        repo.crear_pregunta(nueva)
+        textos_existentes.add(texto_normalizado)
+        conteo[categoria] += 1
+        agregadas += 1
+        print("Agregada:", texto)
 
-total_final = len(repo.listar_preguntas())
-print(f"\nAgregadas: {agregadas}")
-print(f"Omitidas por duplicado: {omitidas}")
-print(f"Total actual: {total_final} de {META_PREGUNTAS}")
-if total_final < META_PREGUNTAS:
-    print("Faltan preguntas nuevas: agrega más entradas a la lista antes de volver a ejecutar.")
+    preguntas_finales = repo.listar_preguntas()
+    conteo_final = {categoria: 0 for categoria in categorias_validas}
+
+    for pregunta in preguntas_finales:
+        if pregunta.categoria_id in conteo_final:
+            conteo_final[pregunta.categoria_id] += 1
+
+    print(f"\nAgregadas: {agregadas}")
+    print(f"Omitidas por duplicado: {omitidas}")
+    print(f"Total actual: {len(preguntas_finales)} de {META_PREGUNTAS}")
+    print("Preguntas por categoría:")
+    for categoria in sorted(conteo_final):
+        print(f"- {categoria}: {conteo_final[categoria]} de {META_POR_CATEGORIA}")
+
+    if len(preguntas_finales) < META_PREGUNTAS or any(
+        cantidad != META_POR_CATEGORIA for cantidad in conteo_final.values()
+    ):
+        print("Aviso: revisa las cantidades. El script no elimina preguntas existentes.")

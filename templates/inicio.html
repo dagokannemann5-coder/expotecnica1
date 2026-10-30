@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block title %}Inicio · Quiz Argentina{% endblock %}
+{% block content %}
+<section class="hero">
+  <div class="hero-copy">
+    <p class="eyebrow">CULTURA GENERAL · ARGENTINA</p>
+    <h1>¿Cuánto sabés<br>de <span>Argentina?</span></h1>
+    <p class="lede">Historia, paisajes, deporte, música y costumbres. Diez preguntas para poner a prueba lo que sabés.</p>
+    <form class="start-form" action="{{ url_for('iniciar_partida') }}" method="post">
+      <input type="hidden" name="_csrf" value="{{ csrf_token }}">
+      <label for="jugador">Tu nombre</label>
+      <div class="input-action"><input id="jugador" name="jugador" maxlength="60" placeholder="¿Cómo te llamás?" required><button class="button button-primary" type="submit">Jugar ahora <span aria-hidden="true">→</span></button></div>
+      <label for="categoria_id" class="category-select-label">Categoría de preguntas</label>
+      <select id="categoria_id" name="categoria_id" class="category-select">
+        <option value="">Aleatorias · todas las categorías</option>
+        {% for categoria in categorias %}
+        <option value="{{ categoria._id }}">Solo {{ categoria.nombre }}</option>
+        {% endfor %}
+      </select>
+    </form>
+    <div class="hero-note"><span class="pulse-dot"></span> 10 preguntas · Hasta 1000 puntos</div>
+  </div>
+  <div class="hero-art">
+    <img class="hero-image" src="{{ url_for('static', filename='img/escuela-tecnica.png') }}" alt="Entrada de la escuela técnica">
+  </div>
+</section>
+<section class="category-section">
+  <div class="section-heading"><div><p class="eyebrow">CINCO CATEGORÍAS</p><h2>Un país, mil historias.</h2></div><span class="section-aside">Las categorías son fijas</span></div>
+  <div class="category-list">{% for categoria in categorias %}<div class="category-card"><span class="category-index">0{{ loop.index }}</span><strong>{{ categoria.nombre }}</strong><span class="category-arrow">↗</span></div>{% endfor %}</div>
+</section>
+{% endblock %}

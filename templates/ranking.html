@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+{% block title %}Ranking · Quiz Argentina{% endblock %}
+{% block content %}
+<section class="page-heading"><div><p class="eyebrow">LOS QUE MÁS SABEN</p><h1>Ranking</h1><p class="lede">Las mejores puntuaciones de las partidas jugadas.</p></div><a class="button button-primary" href="{{ url_for('inicio') }}">Sumar mi puntaje <span aria-hidden="true">→</span></a></section>
+<section class="table-card"><div class="table-head"><span>POSICIÓN / JUGADOR</span><span>ACERTADAS</span><span>PUNTAJE</span></div>
+  {% for p in puntuaciones %}<div class="rank-row"><div class="rank-player"><span class="rank-number">{{ '%02d'|format(loop.index) }}</span><span class="avatar">{{ p.jugador[:1]|upper }}</span><strong>{{ p.jugador }}</strong></div><span class="rank-correct">{{ p.aciertos }} / {{ p.total_preguntas }}</span><strong class="rank-score">{{ p.puntos }} <small>pts</small></strong></div>
+  {% else %}<div class="empty-state"><span class="empty-icon">↗</span><h2>El ranking espera su primer campeón.</h2><p>Jugá una partida para aparecer en la tabla.</p><a href="{{ url_for('inicio') }}" class="text-link">Empezar a jugar →</a></div>{% endfor %}
+</section>
+{% endblock %}

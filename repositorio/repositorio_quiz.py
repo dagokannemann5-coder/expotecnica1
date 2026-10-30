@@ -71,10 +71,27 @@ class RepositorioQuiz:
         except (InvalidId, PyMongoError) as e:
             raise RuntimeError(f"No se pudo eliminar la pregunta: {e}")
 
-    def obtener_preguntas_para_partida(self, cantidad=10):
-        """Elige preguntas al azar para una partida nueva."""
+    def obtener_preguntas_para_partida(self, cantidad=10, categoria_id=None):
+        """Elige al azar preguntas sin repetir enunciados, opcionalmente por categoría."""
+        pipeline = []
+        if categoria_id:
+            pipeline.append({"$match": {"categoria_id": categoria_id}})
+
+        # Agrupa preguntas repetidas por texto normalizado y conserva un documento
+        # por enunciado antes de seleccionar la muestra aleatoria.
+        pipeline.extend([
+            {
+                "$group": {
+                    "_id": {"$toLower": {"$trim": {"input": "$texto"}}},
+                    "documento": {"$first": "$$ROOT"},
+                }
+            },
+            {"$replaceRoot": {"newRoot": "$documento"}},
+            {"$sample": {"size": cantidad}},
+        ])
+
         try:
-            docs = self.__db.preguntas.aggregate([{"$sample": {"size": cantidad}}])
+            docs = self.__db.preguntas.aggregate(pipeline)
             return [Pregunta.desde_diccionario(d) for d in docs]
         except PyMongoError as e:
             raise RuntimeError(f"No se pudieron obtener preguntas: {e}")

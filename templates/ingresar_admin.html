@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+{% block title %}Acceso administrador · Quiz Argentina{% endblock %}
+{% block content %}
+<section class="login-wrap"><div class="login-card"><p class="eyebrow">ÁREA PRIVADA</p><h1>Administrar preguntas</h1><p>Ingresá la contraseña de administración para gestionar el banco de preguntas. Las categorías son fijas.</p><form method="post" class="admin-form">
+  <input type="hidden" name="_csrf" value="{{ csrf_token }}">
+  <label for="password">Contraseña</label><input id="password" name="password" type="password" autocomplete="current-password" required>
+  <button class="button button-primary button-wide" type="submit">Ingresar <span aria-hidden="true">→</span></button>
+</form><a class="text-link" href="{{ url_for('inicio') }}">← Volver al inicio</a></div><div class="login-stamp">SOLO<br>ADMIN</div></section>
+{% endblock %}

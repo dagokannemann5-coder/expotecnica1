@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block title %}{{ titulo }} · Quiz Argentina{% endblock %}
+{% block content %}
+<section class="form-page"><a class="text-link" href="{{ url_for('administrar') }}">← Volver al banco</a><div class="form-card"><p class="eyebrow">CATEGORÍAS FIJAS · CRUD DE PREGUNTAS</p><h1>{{ titulo }}</h1><p class="lede">Completá el enunciado y las cuatro opciones. Marcá la respuesta correcta.</p>
+<form method="post" class="question-editor"><input type="hidden" name="_csrf" value="{{ csrf_token }}">
+  <label for="texto">Enunciado</label><textarea id="texto" name="texto" rows="3" maxlength="500" required>{{ pregunta.texto if pregunta else '' }}</textarea>
+  <fieldset class="option-fieldset"><legend>Opciones de respuesta</legend>{% for i in range(4) %}<div class="editor-option"><span class="option-letter">{{ 'ABCD'[i] }}</span><input name="opcion_{{ i }}" aria-label="Opción {{ 'ABCD'[i] }}" value="{{ pregunta.opciones[i] if pregunta else '' }}" maxlength="250" required><label class="correct-choice"><input type="radio" name="respuesta_correcta" value="{{ i }}" {% if (pregunta and pregunta.respuesta_correcta == i) or (not pregunta and i == 0) %}checked{% endif %}>Correcta</label></div>{% endfor %}</fieldset>
+  <div class="form-grid"><div><label for="categoria_id">Categoría</label><select id="categoria_id" name="categoria_id" required>{% for c in categorias %}<option value="{{ c._id }}" {% if pregunta and pregunta.categoria_id == c._id|string %}selected{% endif %}>{{ c.nombre }}</option>{% endfor %}</select></div><div><label for="dificultad">Dificultad</label><select id="dificultad" name="dificultad"><option value="facil" {% if not pregunta or pregunta.dificultad == 'facil' %}selected{% endif %}>Fácil</option><option value="media" {% if pregunta and pregunta.dificultad == 'media' %}selected{% endif %}>Media</option><option value="dificil" {% if pregunta and pregunta.dificultad == 'dificil' %}selected{% endif %}>Difícil</option></select></div></div>
+  <button class="button button-primary" type="submit">Guardar pregunta <span aria-hidden="true">→</span></button>
+</form></div></section>
+{% endblock %}

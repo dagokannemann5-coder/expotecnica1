@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#102820">
+  <title>{% block title %}Quiz Argentina{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="{{ url_for('inicio') }}"><span class="brand-mark">Q</span><span>Quiz <b>Argentina</b></span></a>
+    <nav aria-label="Navegación principal">
+      <a href="{{ url_for('inicio') }}">Inicio</a>
+      <a href="{{ url_for('ranking') }}">Ranking</a>
+      <a href="{{ url_for('administrar') }}">Administrar</a>
+    </nav>
+  </header>
+  <main class="page-shell">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}<div class="messages" aria-live="polite">{% for category, message in messages %}<div class="flash flash-{{ category }}">{{ message }}</div>{% endfor %}</div>{% endif %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+  </main>
+  <footer class="footer"><span>Proyecto ExpoTécnica</span><span>Hecho para jugar y aprender</span></footer>
+</body>
+</html>

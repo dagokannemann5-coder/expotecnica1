@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block title %}Resultado · Quiz Argentina{% endblock %}
+{% block content %}
+<section class="result-wrap">
+  <div class="result-card">
+    <p class="eyebrow">PARTIDA COMPLETADA</p>
+    <div class="result-medal" aria-hidden="true">★</div>
+    <h1>¡Buen juego, <span>{{ jugador }}</span>!</h1>
+    <p class="lede">Así te fue en esta ronda de cultura argentina.</p>
+    <div class="result-stats"><div><strong>{{ puntos }}</strong><span>PUNTOS</span></div><div><strong>{{ aciertos }}<small>/{{ total }}</small></strong><span>ACERTADAS</span></div></div>
+    <div class="result-actions"><a class="button button-primary" href="{{ url_for('inicio') }}">Jugar de nuevo <span aria-hidden="true">→</span></a><a class="button button-quiet" href="{{ url_for('ranking') }}">Ver ranking</a></div>
+  </div>
+  <div class="result-side"><p class="eyebrow">DATO DE LA PARTIDA</p><p>Tu resultado ya quedó guardado en el ranking. ¡Desafiá a alguien más!</p><div class="side-number">AR<span> / QUIZ</span></div></div>
+</section>
+{% endblock %}

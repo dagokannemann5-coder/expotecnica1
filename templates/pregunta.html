@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block title %}Pregunta {{ numero }} · Quiz Argentina{% endblock %}
+{% block content %}
+<section class="quiz-layout">
+  <aside class="quiz-aside"><p class="eyebrow">PARTIDA EN CURSO</p><h1>Vamos, {{ session.get('jugador', 'jugador') }}.</h1><p>Leé con atención y elegí una respuesta. ¡Cada acierto suma!</p><div class="score-box"><span>ACERTADAS</span><strong>{{ session.get('aciertos', 0) }}</strong></div></aside>
+  <div class="question-panel">
+    <div class="question-meta"><span class="pill">{{ categoria }}</span><span>Pregunta <b>{{ numero }}</b> de {{ total }}</span></div>
+    <div class="progress-track"><span style="width: {{ (numero / total * 100)|round }}%"></span></div>
+    <h2 class="question-title">{{ pregunta.texto }}</h2>
+    <form action="{{ url_for('responder') }}" method="post" class="answer-form">
+      <input type="hidden" name="_csrf" value="{{ csrf_token }}">
+      {% for opcion in pregunta.opciones %}<label class="answer-option"><input type="radio" name="opcion" value="{{ loop.index0 }}" required><span class="option-letter">{{ 'ABCD'[loop.index0] }}</span><span>{{ opcion }}</span><span class="option-check">✓</span></label>{% endfor %}
+      <button class="button button-primary button-wide" type="submit">Confirmar respuesta <span aria-hidden="true">→</span></button>
+    </form>
+  </div>
+</section>
+{% endblock %}

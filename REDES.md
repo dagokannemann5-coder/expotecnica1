@@ -23,6 +23,10 @@ La red tiene:
 
 ![Topología de red](diagrama_red.png)
 
+Red armada en Cisco Packet Tracer, con todos los enlaces en verde (funcionando):
+
+![Topología en Packet Tracer](capturas/00_topologia_packet_tracer.png)
+
 Equipos del diagrama:
 - 1 router (R1)
 - 1 switch (SW1), conectado al router con un enlace troncal
@@ -30,6 +34,8 @@ Equipos del diagrama:
 - 1 servidor de aplicación
 - 1 servidor de base de datos
 - 4 PCs de usuarios
+
+La red simulada en Cisco Packet Tracer está en el archivo `red_quiz_grupo7.pkt` de este repositorio.
 
 ## 3. VLANs y direccionamiento
 
@@ -77,14 +83,192 @@ Orden de asignación: primero las dos /27 (192.168.7.0 y 192.168.7.32), después
 
 ## 4. Justificación de las decisiones
 
-- **Separamos en VLANs** para que el tráfico de los invitados no se mezcle con el de los usuarios ni con el de los servidores. Más adelante, con las ACL, vamos a bloquear el acceso de invitados a los servidores.
+- **Separamos en VLANs** para que el tráfico de los invitados no se mezcle con el de los usuarios ni con el de los servidores. Con las ACL bloqueamos el acceso de invitados a los servidores.
 - **Servidores en su propia VLAN** para poder controlar quién llega a la aplicación y a la base de datos.
 - **IP fija para los servidores** porque el DNS y las reglas de acceso tienen que apuntar siempre al mismo lugar. Usuarios e invitados usan DHCP porque los equipos cambian seguido.
 - **VLSM** para no desperdiciar direcciones: cada VLAN tiene el tamaño que necesita.
 - **VLAN de gestión** para poder administrar el switch por SSH sin usar la red de los usuarios.
 - **Router-on-a-stick:** un solo cable entre el router y el switch con subinterfaces, porque alcanza para esta red y usa pocos equipos.
 
-## 5. Pendiente (se completa en las próximas partes)
+## 5. Configuración en Packet Tracer
 
-- Parte 2: configuración en Packet Tracer (VLANs, DHCP, DNS, ACL, SSH) y capturas de las pruebas.
-- Parte 3: fragmentos de configuración, registro de pruebas, bitácora de problemas y tabla de integración con Seguridad.
+Estos son los fragmentos más importantes de lo que configuramos. Las contraseñas reales no se muestran.
+
+### 5.1 Switch SW1: VLANs, puertos y enlace troncal
+
+```
+vlan 10
+ name Usuarios
+vlan 20
+ name Invitados
+vlan 30
+ name Servidores
+vlan 99
+ name Gestion
+
+interface range fastEthernet 0/2 - 5
+ switchport mode access
+ switchport access vlan 10
+interface fastEthernet 0/6
+ switchport mode access
+ switchport access vlan 20
+interface range fastEthernet 0/7 - 8
+ switchport mode access
+ switchport access vlan 30
+
+interface fastEthernet 0/1
+ switchport mode trunk
+ switchport trunk allowed vlan 10,20,30,99
+
+interface vlan 99
+ ip address 192.168.7.82 255.255.255.248
+ no shutdown
+ip default-gateway 192.168.7.81
+```
+
+### 5.2 Router R1: enrutamiento entre VLANs (router-on-a-stick)
+
+```
+interface gigabitEthernet 0/0
+ no shutdown
+interface gigabitEthernet 0/0.10
+ encapsulation dot1Q 10
+ ip address 192.168.7.1 255.255.255.224
+interface gigabitEthernet 0/0.20
+ encapsulation dot1Q 20
+ ip address 192.168.7.33 255.255.255.224
+interface gigabitEthernet 0/0.30
+ encapsulation dot1Q 30
+ ip address 192.168.7.65 255.255.255.240
+interface gigabitEthernet 0/0.99
+ encapsulation dot1Q 99
+ ip address 192.168.7.81 255.255.255.248
+```
+
+### 5.3 DHCP (en el router)
+
+```
+ip dhcp excluded-address 192.168.7.1
+ip dhcp excluded-address 192.168.7.33
+
+ip dhcp pool USUARIOS
+ network 192.168.7.0 255.255.255.224
+ default-router 192.168.7.1
+ dns-server 192.168.7.66
+
+ip dhcp pool INVITADOS
+ network 192.168.7.32 255.255.255.224
+ default-router 192.168.7.33
+ dns-server 192.168.7.66
+```
+
+### 5.4 DNS y servidor web
+
+En el servidor de aplicación (192.168.7.66) activamos los servicios DNS y HTTP. El DNS tiene un registro tipo A: `app.expotecnica.local` apunta a `192.168.7.66`.
+
+### 5.5 Acceso seguro por SSH (router y switch)
+
+```
+enable secret ********
+service password-encryption
+banner motd #Acceso solo para personal autorizado#
+
+ip domain-name expotecnica.local
+username admin secret ********
+crypto key generate rsa general-keys modulus 1024
+ip ssh version 2
+
+line console 0
+ password ********
+ login
+line vty 0 4
+ transport input ssh
+ login local
+```
+
+En el switch es lo mismo, con `line vty 0 15`. Con `transport input ssh` el acceso remoto solo se permite por SSH, no por Telnet.
+
+### 5.6 ACL (listas de control de acceso)
+
+```
+ip access-list extended ACL_INVITADOS
+ deny ip 192.168.7.32 0.0.0.31 192.168.7.64 0.0.0.15
+ permit ip any any
+
+ip access-list extended ACL_USUARIOS
+ permit udp 192.168.7.0 0.0.0.31 host 192.168.7.66 eq 53
+ permit tcp 192.168.7.0 0.0.0.31 host 192.168.7.66 eq 80
+ permit icmp 192.168.7.0 0.0.0.31 host 192.168.7.66
+ deny ip 192.168.7.0 0.0.0.31 192.168.7.64 0.0.0.15
+ permit ip any any
+
+ip access-list extended ACL_SERVIDORES_OUT
+ deny tcp any host 192.168.7.67 eq 27017
+ permit ip any any
+
+interface gigabitEthernet 0/0.20
+ ip access-group ACL_INVITADOS in
+interface gigabitEthernet 0/0.10
+ ip access-group ACL_USUARIOS in
+interface gigabitEthernet 0/0.30
+ ip access-group ACL_SERVIDORES_OUT out
+```
+
+Qué hace cada una:
+- **ACL_INVITADOS:** los invitados no pueden acceder a la VLAN de Servidores. Todo lo demás pasa.
+- **ACL_USUARIOS:** los usuarios llegan al servidor de aplicación solo por DNS (53) y web (80). Dejamos el ping (ICMP) a ese servidor para poder hacer pruebas de conectividad. Al resto de la VLAN de Servidores, incluida la base de datos, no pueden llegar.
+- **ACL_SERVIDORES_OUT:** bloquea el puerto de MongoDB (27017) para todo el tráfico que viene de otras VLANs.
+
+Como el servidor de aplicación y el de base de datos están en la misma VLAN, la comunicación entre ellos no pasa por el router y las ACL no la afectan. Por eso la regla del puerto 27017 bloquea el tráfico de afuera de la VLAN y el servidor de aplicación sigue pudiendo conectarse a MongoDB.
+
+Como consecuencia de la ACL de invitados, ellos tampoco llegan al servidor DNS (192.168.7.66), así que desde la red de invitados no se resuelven nombres. Lo aceptamos porque el requisito era que no accedan a la VLAN de Servidores.
+
+## 6. Registro de pruebas
+
+### Pruebas exitosas
+
+| N.º | Prueba | Resultado | Captura |
+|---|---|---|---|
+| 1 | Ping desde el servidor de aplicación al gateway (192.168.7.65) y al servidor de base de datos (192.168.7.67) | Responde, 0% de pérdida | ![](capturas/01_ping_servidores.png) |
+| 2 | Página web por nombre: `http://app.expotecnica.local` desde una PC | Carga la página, funcionan el DNS y el servidor web | ![](capturas/02_web_por_nombre.png) |
+| 3 | Acceso por SSH al router desde una PC | Con contraseña incorrecta rechaza (Login invalid); con la correcta muestra el banner y entra | ![](capturas/03_ssh_router.png) |
+| 4 | Acceso por SSH al switch (192.168.7.82) desde una PC | Pide contraseña, muestra el banner y entra | ![](capturas/04_ssh_switch.png) |
+
+### Pruebas fallidas (el bloqueo funciona)
+
+| N.º | Prueba | Resultado | Captura |
+|---|---|---|---|
+| 5 | Telnet al router (192.168.7.1) | La conexión se abre y se cierra enseguida, no deja entrar | ![](capturas/05_telnet_router.png) |
+| 6 | Ping desde una PC de usuarios al servidor de base de datos (192.168.7.67) | Bloqueado por la ACL (destination host unreachable) | ![](capturas/06_ping_pc_bd_bloqueado.png) |
+| 7 | Web desde la tablet de invitados al servidor de aplicación (192.168.7.66) | Request Timeout, bloqueado por la ACL | ![](capturas/07_tablet_servidor_bloqueado.png) |
+| 8 | Comando `show access-lists` después de las pruebas | Las reglas `deny` muestran coincidencias (match) | ![](capturas/08_show_access_lists.png) |
+
+La regla del puerto 27017 se comprueba mirando la ACL con `show access-lists`: Packet Tracer no tiene una herramienta para probar un puerto TCP específico desde una PC.
+
+## 7. Bitácora de resolución de problemas
+
+**Problema 1: no sabíamos qué tipo de router usar.**
+Al armar la red, Packet Tracer ofrecía varios routers (Home Router, PT-Empty, PT-Router y los modelos Cisco).
+Causa: el Home Router se configura por una página web y no deja crear subinterfaces ni ACL por consola, y el PT-Empty no trae puertos.
+Solución: usamos el router **Cisco 2911**, que se configura por línea de comandos.
+
+**Problema 2: error "Unknown command or computer name" en el router.**
+Al escribir `end` en el router apareció `Translating "end"...domain server` seguido del mensaje de error (captura: ![](capturas/09_error_end_router.png)).
+Causa: ya estábamos fuera del modo de configuración, y `end` solo es un comando válido adentro de ese modo. El router interpreta cualquier palabra que no reconoce como el nombre de un equipo y trata de resolverla por DNS.
+Solución: mirar el prompt antes de escribir (`R1>`, `R1#` o `R1(config)#`). Para ver las ACL hay que entrar con `enable` (prompt `R1#`) y usar `show access-lists`.
+
+**Problema 3: el SSH desde la PC no dejaba entrar.**
+Al principio el comando devolvía `Invalid Command` y después `Login invalid`.
+Causa: se escribió `ssh -1` (con el número uno) en lugar de `ssh -l` (con la letra ele), y la contraseña del usuario `admin` se ingresó mal.
+Solución: usar `ssh -l admin 192.168.7.1` con la contraseña correcta. La captura de la prueba 3 muestra los intentos rechazados y después el ingreso exitoso, con el banner.
+
+## 8. Integración Redes + Seguridad
+
+| Medida de red | Amenaza que mitiga (de SECURITY.md) | Cómo se verificó |
+|---|---|---|
+| ACL que bloquea Invitados → Servidores | Acceso no autorizado al servidor desde la red de invitados | Ping desde la tablet de invitados al servidor: bloqueado (prueba 7) |
+| ACL que bloquea Usuarios → servidor de base de datos | Acceso directo a la base de datos desde los puestos de usuario | Ping desde una PC al servidor 192.168.7.67: bloqueado (prueba 6) |
+| ACL que bloquea el puerto 27017 desde otras VLANs | Acceso externo no autorizado a MongoDB | Regla visible y activa en `show access-lists` (prueba 8) |
+| SSH en lugar de Telnet | Robo de credenciales de administración que viajan sin cifrar | Telnet bloqueado, SSH exitoso (pruebas 3, 4 y 5) |
+| Segmentación en VLANs | Movimiento de un atacante entre sectores de la red | Los invitados no llegan a la VLAN de Servidores (prueba 7) |
+| Contraseñas cifradas (`enable secret` y `service password-encryption`) | Lectura de contraseñas desde la configuración del equipo | Las contraseñas no se ven en texto plano en la configuración |

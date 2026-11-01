@@ -18,6 +18,8 @@ La cantidad que hay actualmente en MongoDB Atlas debe comprobarse directamente e
 - Partidas de 10 preguntas, con opción de elegir una categoría.
 - Validación de las respuestas en el servidor. Después de responder, se muestra “¡Correcto!” o, si fue incorrecta, cuál era la respuesta correcta; las opciones se resaltan y se puede continuar con “Siguiente”.
 - Cálculo y guardado de puntaje al finalizar la partida, y consulta del ranking.
+- Interfaz adaptable a computadoras y celulares, con tema claro/oscuro cuya preferencia se conserva entre pantallas.
+- Íconos SVG lineales para las categorías y medallas visuales para los tres primeros puestos del ranking.
 - Panel de administración protegido por contraseña, con alta, edición y eliminación de preguntas.
 - Botón **“Limpiar ranking”** disponible en el panel de administración. Pide confirmación, requiere una solicitud POST protegida con CSRF y elimina únicamente los documentos de puntajes.
 

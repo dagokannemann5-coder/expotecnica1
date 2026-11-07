@@ -243,6 +243,12 @@ Como consecuencia de la ACL de invitados, ellos tampoco llegan al servidor DNS (
 | 7 | Web desde la tablet de invitados al servidor de aplicación (192.168.7.66) | Request Timeout, bloqueado por la ACL | ![](capturas/07_tablet_servidor_bloqueado.png) |
 | 8 | Comando `show access-lists` después de las pruebas | Las reglas `deny` muestran coincidencias (match) | ![](capturas/08_show_access_lists.png) |
 
+### Verificación de la configuración segura
+
+| N.º | Prueba | Resultado | Captura |
+|---|---|---|---|
+| 9 | `show running-config \| include secret` y `show running-config \| include service` en el router | Las contraseñas del `enable secret` y del usuario `admin` aparecen cifradas (tipo 5) y está activo `service password-encryption` | ![](capturas/10_contrasenas_cifradas.png) |
+
 La regla del puerto 27017 se comprueba mirando la ACL con `show access-lists`: Packet Tracer no tiene una herramienta para probar un puerto TCP específico desde una PC.
 
 ## 7. Bitácora de resolución de problemas
@@ -271,4 +277,4 @@ Solución: usar `ssh -l admin 192.168.7.1` con la contraseña correcta. La captu
 | ACL que bloquea el puerto 27017 desde otras VLANs | Acceso externo no autorizado a MongoDB | Regla visible y activa en `show access-lists` (prueba 8) |
 | SSH en lugar de Telnet | Robo de credenciales de administración que viajan sin cifrar | Telnet bloqueado, SSH exitoso (pruebas 3, 4 y 5) |
 | Segmentación en VLANs | Movimiento de un atacante entre sectores de la red | Los invitados no llegan a la VLAN de Servidores (prueba 7) |
-| Contraseñas cifradas (`enable secret` y `service password-encryption`) | Lectura de contraseñas desde la configuración del equipo | Las contraseñas no se ven en texto plano en la configuración |
+| Contraseñas cifradas (`enable secret` y `service password-encryption`) | Lectura de contraseñas desde la configuración del equipo | `show running-config` muestra las contraseñas cifradas (prueba 9) |

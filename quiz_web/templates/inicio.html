@@ -10,11 +10,18 @@
       <input type="hidden" name="_csrf" value="{{ csrf_token }}">
       <label for="jugador">Tu nombre</label>
       <div class="input-action"><input id="jugador" name="jugador" maxlength="60" placeholder="¿Cómo te llamás?" required><button class="button button-primary" type="submit">Jugar ahora <span aria-hidden="true">→</span></button></div>
+      <label for="categoria_id" class="category-select-label">Categoría de preguntas</label>
+      <select id="categoria_id" name="categoria_id" class="category-select">
+        <option value="">Aleatorias · todas las categorías</option>
+        {% for categoria in categorias %}
+        <option value="{{ categoria._id }}">Solo {{ categoria.nombre }}</option>
+        {% endfor %}
+      </select>
     </form>
     <div class="hero-note"><span class="pulse-dot"></span> 10 preguntas · Hasta 1000 puntos</div>
   </div>
-  <div class="hero-art" aria-label="Ilustración decorativa inspirada en Argentina">
-    <div class="sun"></div><div class="mountain mountain-back"></div><div class="mountain mountain-front"></div><div class="river"></div><div class="art-label">ARG<br><small>34° 36' S</small></div>
+  <div class="hero-art">
+    <img class="hero-image" src="{{ url_for('static', filename='img/escuela-tecnica.png') }}" alt="Entrada de la escuela técnica">
   </div>
 </section>
 <section class="category-section">

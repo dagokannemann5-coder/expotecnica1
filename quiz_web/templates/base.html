@@ -9,7 +9,7 @@
 </head>
 <body>
   <header class="topbar">
-    <a class="brand" href="{{ url_for('inicio') }}"><span class="brand-mark">Q</span><span>Quiz <b>Argentina</b></span></a>
+    <a class="brand" href="{{ url_for('inicio') }}"><span class="brand-mark"><img src="{{ url_for('static', filename='img/logo-epet.png') }}" alt="Logo EPET"></span><span>Quiz <b>Argentina</b></span></a>
     <nav aria-label="Navegación principal">
       <a href="{{ url_for('inicio') }}">Inicio</a>
       <a href="{{ url_for('ranking') }}">Ranking</a>
@@ -22,6 +22,6 @@
     {% endwith %}
     {% block content %}{% endblock %}
   </main>
-  <footer class="footer"><span>Proyecto ExpoTécnica</span><span>Hecho para jugar y aprender</span></footer>
+  <footer class="footer"><span>Proyecto ExpoTécnica</span><span>Hecho para jugar y aprender</span><span class="footer-credit">por Kannemann Dago y Romero Matías</span></footer>
 </body>
 </html>

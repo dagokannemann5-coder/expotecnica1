@@ -78,9 +78,15 @@ def iniciar_partida():
         flash("Escribí tu nombre para comenzar.", "error")
         return redirect(url_for("inicio"))
 
-    preguntas = repo.obtener_preguntas_para_partida(10)
+    categoria_id = request.form.get("categoria_id", "").strip() or None
+    categorias_validas = {str(c["_id"]) for c in obtener_categorias()}
+    if categoria_id is not None and categoria_id not in categorias_validas:
+        flash("La categoría elegida no es válida.", "error")
+        return redirect(url_for("inicio"))
+
+    preguntas = repo.obtener_preguntas_para_partida(10, categoria_id=categoria_id)
     if not preguntas:
-        flash("Todavía no hay preguntas cargadas.", "error")
+        flash("No hay preguntas disponibles para esa selección. Elegí otra categoría o avisa al administrador.", "error")
         return redirect(url_for("inicio"))
 
     session["jugador"] = nombre[:60]

@@ -31,7 +31,7 @@ La cantidad que hay actualmente en MongoDB Atlas debe comprobarse directamente e
 
 ## Documentación
 
-- [Modelo de datos, colecciones e índices](docs/MODELO_DATOS.md)
+- [Modelo de datos, colecciones e índices](MODELO_DATOS.md)
 - [Diagrama ER](diagrama_ER.pdf), ubicado en la raíz del proyecto.
 
 ## Instalar y ejecutar
@@ -117,4 +117,3 @@ La terminal debe quedar abierta mientras se usa la aplicación. Para detenerla, 
 - [ ] Verificar en Atlas el total actual de preguntas y su distribución por categoría
 - [ ] Verificar en Atlas que estén creados los dos índices documentados
 - [ ] Pruebas automatizadas incorporadas al proyecto
-

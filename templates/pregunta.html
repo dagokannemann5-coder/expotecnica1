@@ -1,17 +1,41 @@
 {% extends 'base.html' %}
+{% import '_category_icon.html' as category_icons %}
 {% block title %}Pregunta {{ numero }} · Quiz Argentina{% endblock %}
 {% block content %}
 <section class="quiz-layout">
   <aside class="quiz-aside"><p class="eyebrow">PARTIDA EN CURSO</p><h1>Vamos, {{ session.get('jugador', 'jugador') }}.</h1><p>Leé con atención y elegí una respuesta. ¡Cada acierto suma!</p><div class="score-box"><span>ACERTADAS</span><strong>{{ session.get('aciertos', 0) }}</strong></div></aside>
   <div class="question-panel">
-    <div class="question-meta"><span class="pill">{{ categoria }}</span><span>Pregunta <b>{{ numero }}</b> de {{ total }}</span></div>
+    <div class="question-meta"><span class="question-category">{{ category_icons.render(categoria) }}<span class="pill">{{ categoria }}</span></span><span>Pregunta <b>{{ numero }}</b> de {{ total }}</span></div>
     <div class="progress-track"><span style="width: {{ (numero / total * 100)|round }}%"></span></div>
     <h2 class="question-title">{{ pregunta.texto }}</h2>
+    {% if respuesta_elegida is not none %}
+    <div class="answer-feedback {{ 'answer-feedback-success' if pregunta.es_correcta(respuesta_elegida) else 'answer-feedback-error' }}" role="status" aria-live="polite">
+      {% if pregunta.es_correcta(respuesta_elegida) %}
+      <strong>¡Correcto!</strong>
+      {% else %}
+      <strong>Incorrecto. La respuesta correcta era: {{ pregunta.opciones[pregunta.respuesta_correcta] }}</strong>
+      {% endif %}
+    </div>
+    <div class="answer-form answer-review">
+      {% for opcion in pregunta.opciones %}
+      <div class="answer-option{% if loop.index0 == pregunta.respuesta_correcta %} answer-option-correct{% elif loop.index0 == respuesta_elegida %} answer-option-incorrect{% endif %}">
+        <span class="option-letter">{{ 'ABCD'[loop.index0] }}</span>
+        <span>{{ opcion }}</span>
+        {% if loop.index0 == pregunta.respuesta_correcta %}<span class="option-check" aria-label="Respuesta correcta">✓</span>{% elif loop.index0 == respuesta_elegida %}<span class="option-check" aria-label="Respuesta elegida incorrecta">×</span>{% endif %}
+      </div>
+      {% endfor %}
+      <form action="{{ url_for('siguiente_pregunta') }}" method="post">
+        <input type="hidden" name="_csrf" value="{{ csrf_token }}">
+        <button class="button button-primary button-wide" type="submit">Siguiente <span aria-hidden="true">→</span></button>
+      </form>
+    </div>
+    {% else %}
     <form action="{{ url_for('responder') }}" method="post" class="answer-form">
       <input type="hidden" name="_csrf" value="{{ csrf_token }}">
       {% for opcion in pregunta.opciones %}<label class="answer-option"><input type="radio" name="opcion" value="{{ loop.index0 }}" required><span class="option-letter">{{ 'ABCD'[loop.index0] }}</span><span>{{ opcion }}</span><span class="option-check">✓</span></label>{% endfor %}
       <button class="button button-primary button-wide" type="submit">Confirmar respuesta <span aria-hidden="true">→</span></button>
     </form>
+    {% endif %}
   </div>
 </section>
 {% endblock %}

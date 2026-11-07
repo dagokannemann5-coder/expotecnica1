@@ -1,0 +1,15 @@
+{% macro render(nombre) -%}
+  {%- set iconos = {
+    'Historia': 'historia',
+    'Geografía': 'geografia',
+    'Deportes': 'deportes',
+    'Música': 'musica',
+    'Comidas y costumbres': 'comidas'
+  } -%}
+  {%- set icono = iconos.get(nombre) -%}
+  {%- if icono -%}
+    <svg class="category-illustration" aria-hidden="true" focusable="false">
+      <use href="{{ url_for('static', filename='img/category-icons.svg') }}#{{ icono }}"></use>
+    </svg>
+  {%- endif -%}
+{%- endmacro %}

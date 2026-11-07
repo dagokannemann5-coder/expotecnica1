@@ -1,12 +1,16 @@
 import hmac
 import os
 import secrets
+from pathlib import Path
 
+from dotenv import load_dotenv
 from flask import Flask, abort, flash, redirect, render_template, request, session, url_for
 
 from modelos.pregunta import Pregunta
 from modelos.puntuacion import Puntuacion
 from repositorio.repositorio_quiz import RepositorioQuiz
+
+load_dotenv(Path(__file__).resolve().parent / ".env")
 
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY")
@@ -78,15 +82,9 @@ def iniciar_partida():
         flash("Escribí tu nombre para comenzar.", "error")
         return redirect(url_for("inicio"))
 
-    categoria_id = request.form.get("categoria_id", "").strip() or None
-    categorias_validas = {str(c["_id"]) for c in obtener_categorias()}
-    if categoria_id is not None and categoria_id not in categorias_validas:
-        flash("La categoría elegida no es válida.", "error")
-        return redirect(url_for("inicio"))
-
-    preguntas = repo.obtener_preguntas_para_partida(10, categoria_id=categoria_id)
+    preguntas = repo.obtener_preguntas_para_partida(10)
     if not preguntas:
-        flash("No hay preguntas disponibles para esa selección. Elegí otra categoría o avisa al administrador.", "error")
+        flash("Todavía no hay preguntas cargadas.", "error")
         return redirect(url_for("inicio"))
 
     session["jugador"] = nombre[:60]

@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% import '_category_icon.html' as category_icons %}
 {% block title %}Inicio · Quiz Argentina{% endblock %}
 {% block content %}
 <section class="hero">
@@ -18,6 +19,20 @@
         {% endfor %}
       </select>
     </form>
+    <script>
+      const categorySelect = document.getElementById("categoria_id");
+
+      categorySelect.addEventListener("change", () => {
+        categorySelect.classList.add("has-selection");
+        categorySelect.classList.remove("selection-change");
+        void categorySelect.offsetWidth;
+        categorySelect.classList.add("selection-change");
+      });
+
+      categorySelect.addEventListener("animationend", () => {
+        categorySelect.classList.remove("selection-change");
+      });
+    </script>
     <div class="hero-note"><span class="pulse-dot"></span> 10 preguntas · Hasta 1000 puntos</div>
   </div>
   <div class="hero-art">
@@ -26,6 +41,6 @@
 </section>
 <section class="category-section">
   <div class="section-heading"><div><p class="eyebrow">CINCO CATEGORÍAS</p><h2>Un país, mil historias.</h2></div><span class="section-aside">Las categorías son fijas</span></div>
-  <div class="category-list">{% for categoria in categorias %}<div class="category-card"><span class="category-index">0{{ loop.index }}</span><strong>{{ categoria.nombre }}</strong><span class="category-arrow">↗</span></div>{% endfor %}</div>
+  <div class="category-list">{% for categoria in categorias %}<div class="category-card"><div class="category-card-heading"><span class="category-index">0{{ loop.index }}</span>{{ category_icons.render(categoria.nombre) }}</div><strong>{{ categoria.nombre }}</strong><span class="category-arrow">↗</span></div>{% endfor %}</div>
 </section>
 {% endblock %}

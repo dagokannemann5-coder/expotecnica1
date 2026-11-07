@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% import '_category_icon.html' as category_icons %}
 {% block title %}Inicio · Quiz Argentina{% endblock %}
 {% block content %}
 <section class="hero">
@@ -10,22 +11,15 @@
       <input type="hidden" name="_csrf" value="{{ csrf_token }}">
       <label for="jugador">Tu nombre</label>
       <div class="input-action"><input id="jugador" name="jugador" maxlength="60" placeholder="¿Cómo te llamás?" required><button class="button button-primary" type="submit">Jugar ahora <span aria-hidden="true">→</span></button></div>
-      <label for="categoria_id" class="category-select-label">Categoría de preguntas</label>
-      <select id="categoria_id" name="categoria_id" class="category-select">
-        <option value="">Aleatorias · todas las categorías</option>
-        {% for categoria in categorias %}
-        <option value="{{ categoria._id }}">Solo {{ categoria.nombre }}</option>
-        {% endfor %}
-      </select>
     </form>
     <div class="hero-note"><span class="pulse-dot"></span> 10 preguntas · Hasta 1000 puntos</div>
   </div>
-  <div class="hero-art">
-    <img class="hero-image" src="{{ url_for('static', filename='img/escuela-tecnica.png') }}" alt="Entrada de la escuela técnica">
+  <div class="hero-art" aria-label="Ilustración decorativa inspirada en Argentina">
+    <div class="sun"></div><div class="mountain mountain-back"></div><div class="mountain mountain-front"></div><div class="river"></div><div class="art-label">ARG<br><small>34° 36' S</small></div>
   </div>
 </section>
 <section class="category-section">
   <div class="section-heading"><div><p class="eyebrow">CINCO CATEGORÍAS</p><h2>Un país, mil historias.</h2></div><span class="section-aside">Las categorías son fijas</span></div>
-  <div class="category-list">{% for categoria in categorias %}<div class="category-card"><span class="category-index">0{{ loop.index }}</span><strong>{{ categoria.nombre }}</strong><span class="category-arrow">↗</span></div>{% endfor %}</div>
+  <div class="category-list">{% for categoria in categorias %}<div class="category-card"><div class="category-card-heading"><span class="category-index">0{{ loop.index }}</span>{{ category_icons.render(categoria.nombre) }}</div><strong>{{ categoria.nombre }}</strong><span class="category-arrow">↗</span></div>{% endfor %}</div>
 </section>
 {% endblock %}

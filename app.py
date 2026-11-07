@@ -1,12 +1,16 @@
 import hmac
 import os
 import secrets
+from pathlib import Path
 
+from dotenv import load_dotenv
 from flask import Flask, abort, flash, redirect, render_template, request, session, url_for
 
 from modelos.pregunta import Pregunta
 from modelos.puntuacion import Puntuacion
 from repositorio.repositorio_quiz import RepositorioQuiz
+
+load_dotenv(Path(__file__).resolve().parent / ".env")
 
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY")
@@ -95,6 +99,7 @@ def iniciar_partida():
     session["aciertos"] = 0
     session["puntos"] = 0
     session["partida_guardada"] = False
+    session.pop("respuesta_elegida", None)
     return redirect(url_for("pregunta_actual"))
 
 
@@ -112,6 +117,7 @@ def pregunta_actual():
     if pregunta is None:
         flash("Una pregunta de la partida ya no está disponible. Iniciá otra partida.", "error")
         session.pop("pregunta_ids", None)
+        session.pop("respuesta_elegida", None)
         return redirect(url_for("inicio"))
 
     categorias = {str(c["_id"]): c["nombre"] for c in obtener_categorias()}
@@ -121,6 +127,7 @@ def pregunta_actual():
         categoria=categorias.get(pregunta.categoria_id, pregunta.categoria_id),
         numero=indice + 1,
         total=len(ids),
+        respuesta_elegida=session.get("respuesta_elegida"),
     )
 
 
@@ -131,6 +138,8 @@ def responder():
     indice = session.get("indice")
     if not ids or indice is None or indice >= len(ids):
         return redirect(url_for("inicio"))
+    if "respuesta_elegida" in session:
+        return redirect(url_for("pregunta_actual"))
 
     try:
         elegida = int(request.form.get("opcion", ""))
@@ -145,10 +154,21 @@ def responder():
 
     if pregunta.es_correcta(elegida):
         session["aciertos"] = session.get("aciertos", 0) + 1
-        flash("¡Correcto!", "success")
-    else:
-        flash("No era esa. ¡Vamos con la siguiente!", "info")
+    session["respuesta_elegida"] = elegida
+    return redirect(url_for("pregunta_actual"))
 
+
+@app.post("/siguiente")
+def siguiente_pregunta():
+    exigir_csrf()
+    ids = session.get("pregunta_ids")
+    indice = session.get("indice")
+    if not ids or indice is None or indice >= len(ids):
+        return redirect(url_for("pregunta_actual"))
+    if "respuesta_elegida" not in session:
+        return redirect(url_for("pregunta_actual"))
+
+    session.pop("respuesta_elegida")
     session["indice"] = indice + 1
     if session["indice"] >= len(ids):
         aciertos = session.get("aciertos", 0)
@@ -179,6 +199,21 @@ def resultado():
 @app.get("/ranking")
 def ranking():
     return render_template("ranking.html", puntuaciones=repo.obtener_ranking(20))
+
+
+@app.post("/administrar/limpiar-ranking")
+def limpiar_ranking():
+    redireccion = exigir_admin()
+    if redireccion:
+        return redireccion
+    exigir_csrf()
+    try:
+        repo.limpiar_ranking()
+    except RuntimeError as exc:
+        flash(str(exc), "error")
+        return redirect(url_for("administrar"))
+    flash("Se limpiaron todos los puntajes del ranking.", "success")
+    return redirect(url_for("ranking"))
 
 
 @app.route("/administrar/ingresar", methods=["GET", "POST"])

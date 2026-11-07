@@ -1,4 +1,6 @@
 import os
+from pathlib import Path
+
 from bson import ObjectId
 from bson.errors import InvalidId
 from dotenv import load_dotenv
@@ -8,7 +10,7 @@ from pymongo.errors import PyMongoError
 from modelos.pregunta import Pregunta
 from modelos.puntuacion import Puntuacion
 
-load_dotenv()  # lee el archivo .env
+load_dotenv(Path(__file__).resolve().parents[1] / ".env")
 
 
 class RepositorioQuiz:
@@ -110,3 +112,10 @@ class RepositorioQuiz:
             return [Puntuacion.desde_diccionario(d) for d in docs]
         except PyMongoError as e:
             raise RuntimeError(f"No se pudo leer el ranking: {e}")
+
+    def limpiar_ranking(self):
+        """Elimina todas las puntuaciones sin afectar otras colecciones."""
+        try:
+            return self.__db.puntuaciones.delete_many({})
+        except PyMongoError as e:
+            raise RuntimeError(f"No se pudo limpiar el ranking: {e}")

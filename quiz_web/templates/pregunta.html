@@ -1,10 +1,11 @@
 {% extends 'base.html' %}
+{% import '_category_icon.html' as category_icons %}
 {% block title %}Pregunta {{ numero }} · Quiz Argentina{% endblock %}
 {% block content %}
 <section class="quiz-layout">
   <aside class="quiz-aside"><p class="eyebrow">PARTIDA EN CURSO</p><h1>Vamos, {{ session.get('jugador', 'jugador') }}.</h1><p>Leé con atención y elegí una respuesta. ¡Cada acierto suma!</p><div class="score-box"><span>ACERTADAS</span><strong>{{ session.get('aciertos', 0) }}</strong></div></aside>
   <div class="question-panel">
-    <div class="question-meta"><span class="pill">{{ categoria }}</span><span>Pregunta <b>{{ numero }}</b> de {{ total }}</span></div>
+    <div class="question-meta"><span class="question-category">{{ category_icons.render(categoria) }}<span class="pill">{{ categoria }}</span></span><span>Pregunta <b>{{ numero }}</b> de {{ total }}</span></div>
     <div class="progress-track"><span style="width: {{ (numero / total * 100)|round }}%"></span></div>
     <h2 class="question-title">{{ pregunta.texto }}</h2>
     <form action="{{ url_for('responder') }}" method="post" class="answer-form">

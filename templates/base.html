@@ -3,7 +3,12 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#102820">
+  <meta id="theme-color" name="theme-color" content="#FFFDF2">
+  <script>
+    if (localStorage.getItem("quiz-argentina-theme") === "dark") {
+      document.documentElement.dataset.theme = "dark";
+    }
+  </script>
   <title>{% block title %}Quiz Argentina{% endblock %}</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
@@ -14,6 +19,9 @@
       <a href="{{ url_for('inicio') }}">Inicio</a>
       <a href="{{ url_for('ranking') }}">Ranking</a>
       <a href="{{ url_for('administrar') }}">Administrar</a>
+      <button class="theme-toggle" type="button" aria-label="Activar modo oscuro" aria-pressed="false" title="Activar modo oscuro">
+        <span class="theme-toggle-icon" aria-hidden="true">☾</span>
+      </button>
     </nav>
   </header>
   <main class="page-shell">
@@ -23,5 +31,29 @@
     {% block content %}{% endblock %}
   </main>
   <footer class="footer"><span>Proyecto ExpoTécnica</span><span>Hecho para jugar y aprender</span><span class="footer-credit">por Kannemann Dago y Romero Matías</span></footer>
+  <script>
+    const themeToggle = document.querySelector(".theme-toggle");
+    const themeIcon = themeToggle.querySelector(".theme-toggle-icon");
+    const themeColor = document.getElementById("theme-color");
+
+    function updateThemeToggle() {
+      const isDark = document.documentElement.dataset.theme === "dark";
+      const label = isDark ? "Activar modo claro" : "Activar modo oscuro";
+      themeToggle.setAttribute("aria-label", label);
+      themeToggle.setAttribute("aria-pressed", String(isDark));
+      themeToggle.title = label;
+      themeIcon.textContent = isDark ? "☀" : "☾";
+      themeColor.content = isDark ? "#121714" : "#FFFDF2";
+    }
+
+    themeToggle.addEventListener("click", () => {
+      const isDark = document.documentElement.dataset.theme !== "dark";
+      document.documentElement.dataset.theme = isDark ? "dark" : "light";
+      localStorage.setItem("quiz-argentina-theme", isDark ? "dark" : "light");
+      updateThemeToggle();
+    });
+
+    updateThemeToggle();
+  </script>
 </body>
 </html>

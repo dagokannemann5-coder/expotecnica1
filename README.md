@@ -31,7 +31,7 @@ La cantidad que hay actualmente en MongoDB Atlas debe comprobarse directamente e
 
 ## Documentación
 
-- [Modelo de datos, colecciones e índices](MODELO_DATOS.md)
+- [Modelo de datos, colecciones e índices](docs/MODELO_DATOS.md)
 - [Diagrama ER](diagrama_ER.pdf), ubicado en la raíz del proyecto.
 
 ## Instalar y ejecutar

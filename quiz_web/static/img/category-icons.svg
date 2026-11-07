@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <symbol id="historia" viewBox="0 0 64 64">
+    <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3">
+      <path d="M10 25 32 12l22 13H10Z"/>
+      <path d="M14 52h36M18 27v22M28 27v22M38 27v22M48 27v22M12 56h40"/>
+      <path d="M32 17v3"/>
+    </g>
+    <path d="M32 12 10 25h44L32 12Z" fill="#ffd52a" fill-opacity=".72"/>
+  </symbol>
+  <symbol id="geografia" viewBox="0 0 64 64">
+    <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3">
+      <path d="m8 17 15-6 18 6 15-6v37l-15 6-18-6-15 6V17Z"/>
+      <path d="M23 11v37M41 17v37"/>
+      <path d="M32 26c0-6 4-10 10-10s10 4 10 10c0 8-10 19-10 19S32 34 32 26Z" fill="#ffd52a"/>
+      <circle cx="42" cy="26" r="3" fill="currentColor" stroke="none"/>
+    </g>
+  </symbol>
+  <symbol id="deportes" viewBox="0 0 64 64">
+    <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3">
+      <circle cx="32" cy="32" r="23"/>
+      <path d="m32 20 9 7-3 11H26l-3-11 9-7Z" fill="#ffd52a"/>
+      <path d="m32 20 0-11M23 27l-10-4M26 38l-7 10M38 38l7 10M41 27l10-4"/>
+    </g>
+  </symbol>
+  <symbol id="musica" viewBox="0 0 64 64">
+    <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3">
+      <path d="M39 12v31"/>
+      <path d="m39 13 15-4v30"/>
+      <ellipse cx="30" cy="45" rx="9" ry="6" transform="rotate(-20 30 45)" fill="#ffd52a"/>
+      <ellipse cx="45" cy="41" rx="9" ry="6" transform="rotate(-20 45 41)" fill="#ffd52a"/>
+    </g>
+  </symbol>
+  <symbol id="comidas" viewBox="0 0 64 64">
+    <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3">
+      <path d="M17 29h30l-3 16a13 13 0 0 1-24 0l-3-16Z" fill="#ffd52a" fill-opacity=".75"/>
+      <path d="M17 29c0-4 7-7 15-7s15 3 15 7-7 6-15 6-15-2-15-6Z"/>
+      <path d="M36 23 48 9M44 13l7 6M26 42v1M32 42v1M38 42v1"/>
+    </g>
+  </symbol>
+</svg>

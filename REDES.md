@@ -270,11 +270,15 @@ Solución: usar `ssh -l admin 192.168.7.1` con la contraseña correcta. La captu
 
 ## 8. Integración Redes + Seguridad
 
+Las amenazas son los riesgos identificados en el `SECURITY.md`.
+
 | Medida de red | Amenaza que mitiga (de SECURITY.md) | Cómo se verificó |
 |---|---|---|
-| ACL que bloquea Invitados → Servidores | Acceso no autorizado al servidor desde la red de invitados | Ping desde la tablet de invitados al servidor: bloqueado (prueba 7) |
-| ACL que bloquea Usuarios → servidor de base de datos | Acceso directo a la base de datos desde los puestos de usuario | Ping desde una PC al servidor 192.168.7.67: bloqueado (prueba 6) |
-| ACL que bloquea el puerto 27017 desde otras VLANs | Acceso externo no autorizado a MongoDB | Regla visible y activa en `show access-lists` (prueba 8) |
-| SSH en lugar de Telnet | Robo de credenciales de administración que viajan sin cifrar | Telnet bloqueado, SSH exitoso (pruebas 3, 4 y 5) |
-| Segmentación en VLANs | Movimiento de un atacante entre sectores de la red | Los invitados no llegan a la VLAN de Servidores (prueba 7) |
-| Contraseñas cifradas (`enable secret` y `service password-encryption`) | Lectura de contraseñas desde la configuración del equipo | `show running-config` muestra las contraseñas cifradas (prueba 9) |
+| ACL que bloquea Invitados → Servidores | Riesgo 1 (manipulación de puntajes con Postman o scripts) y Riesgo 4 (acceso no autorizado al panel de administración): desde la red de invitados no se llega a las rutas de la aplicación | Acceso desde la tablet al servidor: Request Timeout (prueba 7) |
+| ACL que limita a Usuarios al servidor de aplicación, solo por DNS y HTTP | Riesgo 4 (acceso no autorizado): los puestos de usuario no pueden llegar a otros servicios de la VLAN de Servidores, como la base de datos | Ping de una PC a 192.168.7.67 bloqueado (prueba 6) y web por nombre funcionando (prueba 2) |
+| ACL que bloquea el puerto 27017 desde otras VLANs | Riesgo 4 (credenciales expuestas): aunque alguien conociera la clave de la base (MONGO_URI), no puede conectarse a MongoDB desde otra VLAN | Regla activa en show access-lists (prueba 8) |
+| Segmentación en VLANs | Riesgo 1 y Riesgo 4: reduce quién puede alcanzar el servidor de aplicación y la base de datos | Los invitados no llegan a la VLAN de Servidores (prueba 7) |
+| SSH en lugar de Telnet | Riesgo 4 (acceso no autorizado), aplicado a los equipos de red: la clave de administración no viaja sin cifrar | Telnet se cierra y SSH entra con el banner (pruebas 3, 4 y 5) |
+| Contraseñas cifradas (enable secret y service password-encryption) | Riesgo 4 (credenciales expuestas), aplicado a los equipos de red: si alguien ve la configuración, no puede leer las claves | show running-config muestra las contraseñas cifradas (prueba 9) |
+
+Los riesgos 2 (estado de la partida en la cookie), 3 (entradas inválidas y errores internos) y 5 (XSS por el nombre del jugador) del SECURITY.md se reducen en el código de la aplicación, con validaciones, el escape automático de Jinja2 y el manejo de errores. Las medidas de red de esta tabla no los cubren.

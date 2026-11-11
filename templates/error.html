@@ -1,8 +1,12 @@
-{% extends 'base.html' %} {% block title %}Error {{ codigo }} · Quiz Argentina{% endblock %} {% block content %}
-ERROR {{ codigo }}
-
-Algo salió mal
-{{ mensaje }}
-
-Volver al inicio →
+{% extends 'base.html' %}
+{% block title %}Error {{ codigo }} · Quiz Argentina{% endblock %}
+{% block content %}
+<section class="result-wrap" style="grid-template-columns:1fr;max-width:640px">
+  <div class="result-card">
+    <p class="eyebrow">ERROR {{ codigo }}</p>
+    <h1>Algo salió mal</h1>
+    <p class="lede">{{ mensaje }}</p>
+    <div class="result-actions"><a class="button button-primary" href="{{ url_for('inicio') }}">Volver al inicio <span aria-hidden="true">→</span></a></div>
+  </div>
+</section>
 {% endblock %}

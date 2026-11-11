@@ -1,10 +1,15 @@
 import hmac
+import logging
 import os
+import re
 import secrets
+import time
 from pathlib import Path
 
 from dotenv import load_dotenv
 from flask import Flask, abort, flash, redirect, render_template, request, session, url_for
+from werkzeug.exceptions import HTTPException
+from werkzeug.security import check_password_hash
 
 from modelos.pregunta import Pregunta
 from modelos.puntuacion import Puntuacion
@@ -20,7 +25,23 @@ app.config.update(
     SESSION_COOKIE_HTTPONLY=True,
     SESSION_COOKIE_SAMESITE="Lax",
     SESSION_COOKIE_SECURE=os.getenv("COOKIE_SECURE", "0") == "1",
+    MAX_CONTENT_LENGTH=16 * 1024,  # Hardening: ninguna petición de este sitio necesita más de 16 KB
 )
+
+# Los detalles técnicos de los errores se guardan en un archivo, nunca se muestran al usuario
+logging.basicConfig(
+    filename="errores.log",
+    level=logging.ERROR,
+    format="%(asctime)s %(levelname)s %(message)s",
+)
+
+# Hardening: nombre del jugador (letras, números, espacio, punto, guion y guion bajo; 3 a 20 caracteres)
+NOMBRE_VALIDO = re.compile(r"[A-Za-z0-9ÁÉÍÓÚÜáéíóúüÑñ ._-]{3,20}")
+
+# Hardening: límite de intentos fallidos de login de administrador (en memoria)
+MAX_INTENTOS_ADMIN = 5
+VENTANA_INTENTOS_SEG = 300
+intentos_admin = {}
 
 repo = RepositorioQuiz()
 
@@ -47,6 +68,17 @@ def exigir_admin():
     if not session.get("es_admin"):
         return redirect(url_for("ingresar_admin"))
     return None
+
+
+def login_bloqueado(ip):
+    ahora = time.time()
+    recientes = [t for t in intentos_admin.get(ip, []) if ahora - t < VENTANA_INTENTOS_SEG]
+    intentos_admin[ip] = recientes
+    return len(recientes) >= MAX_INTENTOS_ADMIN
+
+
+def registrar_intento_fallido(ip):
+    intentos_admin.setdefault(ip, []).append(time.time())
 
 
 def pregunta_desde_formulario():
@@ -80,6 +112,9 @@ def iniciar_partida():
     nombre = request.form.get("jugador", "").strip()
     if not nombre:
         flash("Escribí tu nombre para comenzar.", "error")
+        return redirect(url_for("inicio"))
+    if not NOMBRE_VALIDO.fullmatch(nombre):
+        flash("El nombre debe tener entre 3 y 20 caracteres: letras, números, espacios, punto, guion o guion bajo.", "error")
         return redirect(url_for("inicio"))
 
     categoria_id = request.form.get("categoria_id", "").strip() or None
@@ -222,12 +257,19 @@ def ingresar_admin():
         return redirect(url_for("administrar"))
     if request.method == "POST":
         exigir_csrf()
-        clave_configurada = os.getenv("ADMIN_PASSWORD", "")
+        ip = request.remote_addr or "desconocida"
+        if login_bloqueado(ip):
+            flash("Demasiados intentos fallidos. Esperá unos minutos e intentá de nuevo.", "error")
+            return render_template("ingresar_admin.html"), 429
+        # Hardening: la clave NO se guarda en texto plano, solo su hash (werkzeug.security)
+        hash_configurado = os.getenv("ADMIN_PASSWORD_HASH", "")
         clave_ingresada = request.form.get("password", "")
-        if clave_configurada and hmac.compare_digest(clave_ingresada, clave_configurada):
+        if hash_configurado and check_password_hash(hash_configurado, clave_ingresada):
+            intentos_admin.pop(ip, None)
             session["es_admin"] = True
             return redirect(url_for("administrar"))
-        flash("Contraseña incorrecta o ADMIN_PASSWORD no configurada.", "error")
+        registrar_intento_fallido(ip)
+        flash("Contraseña incorrecta o acceso de administrador no configurado.", "error")
     return render_template("ingresar_admin.html")
 
 
@@ -301,6 +343,32 @@ def eliminar_pregunta(id_pregunta):
     except RuntimeError as exc:
         flash(str(exc), "error")
     return redirect(url_for("administrar"))
+
+
+# ---------- Manejo seguro de excepciones ----------
+def pagina_error(codigo, mensaje):
+    return render_template("error.html", codigo=codigo, mensaje=mensaje), codigo
+
+
+@app.errorhandler(HTTPException)
+def error_http(e):
+    mensajes = {
+        404: "La página que buscás no existe.",
+        405: "Esa acción no está permitida.",
+        413: "La petición enviada es demasiado grande.",
+    }
+    if e.code == 400:
+        mensaje = e.description  # mensajes propios de la app (ej. formulario vencido)
+    else:
+        mensaje = mensajes.get(e.code, "No pudimos procesar la solicitud.")
+    return pagina_error(e.code, mensaje)
+
+
+@app.errorhandler(Exception)
+def error_inesperado(e):
+    # El detalle (stack trace, datos de MongoDB) va solo al log del servidor
+    app.logger.exception("Error inesperado en %s", request.path)
+    return pagina_error(500, "Ocurrió un error interno. Intentá de nuevo más tarde.")
 
 
 if __name__ == "__main__":

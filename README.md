@@ -4,8 +4,8 @@ Proyecto Final Integrador de Programación II, Bases de Datos II, Seguridad Info
 
 ## Integrantes
 
-- Kannemann Dago
-- Romero Matías
+- Kannemann Dago (Investigacion/desarrollo)
+- Romero Matías (Desarrollo/documentacion)
 
 ## Descripción
 
